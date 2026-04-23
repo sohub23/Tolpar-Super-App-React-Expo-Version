@@ -1,0 +1,308 @@
+import React, { useState } from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Wallet,
+  Building2,
+  TrendingUp,
+  Car,
+  Bus,
+  Plane,
+  Utensils,
+  ShoppingCart,
+  Pill,
+  HeartPulse,
+  ShoppingBag,
+  Shirt,
+  Film,
+  Music,
+  Gamepad2,
+  ExternalLink,
+} from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  serviceCategories,
+  allServices,
+  featuredBusinesses,
+} from "@/lib/mockData";
+import { flattenStyle } from "@/utils/flatten-style";
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  wallet: Wallet,
+  "building-2": Building2,
+  "trending-up": TrendingUp,
+  car: Car,
+  bus: Bus,
+  plane: Plane,
+  utensils: Utensils,
+  "shopping-cart": ShoppingCart,
+  pill: Pill,
+  "heart-pulse": HeartPulse,
+  "shopping-bag": ShoppingBag,
+  shirt: Shirt,
+  film: Film,
+  music: Music,
+  "gamepad-2": Gamepad2,
+};
+
+function getIcon(iconName: string, size: number, color: string) {
+  const IconComp = ICON_MAP[iconName] || Wallet;
+  return <IconComp size={size} color={color} strokeWidth={1.8} />;
+}
+
+export default function ServicesScreen() {
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const filteredServices =
+    activeCategory === "All"
+      ? allServices
+      : allServices.filter((s) => s.category === activeCategory);
+
+  return (
+    <View style={styles.root}>
+      {/* Header */}
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <Text style={styles.headerTitle}>Services</Text>
+        <Text style={styles.headerSub}>Discover all mini apps</Text>
+      </SafeAreaView>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Category Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryScrollContent}
+          style={styles.categoryScroll}
+        >
+          {serviceCategories.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={activeCategory === cat ? styles.categoryTabActive : styles.categoryTab}
+              onPress={() => setActiveCategory(cat)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={
+                  activeCategory === cat
+                    ? styles.categoryTabTextActive
+                    : styles.categoryTabText
+                }
+              >
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Service Grid */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>
+            {activeCategory === "All" ? "All Services" : activeCategory}
+          </Text>
+          <View style={styles.serviceGrid}>
+            {filteredServices.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                style={styles.serviceCard}
+                activeOpacity={0.75}
+              >
+                <View style={flattenStyle([styles.serviceIconWrap, { backgroundColor: service.color + "18" }])}>
+                  {getIcon(service.icon, 26, service.color)}
+                </View>
+                <Text style={styles.serviceName} numberOfLines={1}>
+                  {service.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Featured Businesses */}
+        <View style={styles.featuredHeader}>
+          <Text style={styles.sectionTitle2}>Featured</Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.featuredGrid}>
+          {featuredBusinesses.map((biz) => (
+            <TouchableOpacity
+              key={biz.id}
+              style={styles.featuredCard}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={biz.gradientColors as [string, string]}
+                style={styles.featuredBanner}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <View style={styles.featuredCategoryTag}>
+                  <Text style={styles.featuredCategoryText}>{biz.category}</Text>
+                </View>
+              </LinearGradient>
+              <View style={styles.featuredInfo}>
+                <Text style={styles.featuredName} numberOfLines={1}>
+                  {biz.name}
+                </Text>
+                <Text style={styles.featuredDesc} numberOfLines={2}>
+                  {biz.description}
+                </Text>
+                <TouchableOpacity style={styles.openBtn} activeOpacity={0.8}>
+                  <ExternalLink size={12} color="#07C160" strokeWidth={2} />
+                  <Text style={styles.openBtnText}>Open</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F5F5F5" },
+  header: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+  },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: "#1A1A1A", marginTop: 8 },
+  headerSub: { fontSize: 13, color: "#9E9E9E", marginTop: 2 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingTop: 0 },
+  categoryScroll: { backgroundColor: "#FFFFFF" },
+  categoryScrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  categoryTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  categoryTabActive: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: "#07C160",
+    borderWidth: 1,
+    borderColor: "#07C160",
+  },
+  categoryTabText: { fontSize: 13, color: "#666", fontWeight: "500" },
+  categoryTabTextActive: { fontSize: 13, color: "#FFFFFF", fontWeight: "600" },
+  sectionCard: {
+    backgroundColor: "#FFFFFF",
+    margin: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#1A1A1A", marginBottom: 14 },
+  serviceGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 0,
+  },
+  serviceCard: {
+    width: "33.33%",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  serviceIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  serviceName: {
+    fontSize: 12,
+    color: "#333",
+    fontWeight: "500",
+    textAlign: "center",
+    paddingHorizontal: 4,
+  },
+  featuredHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  sectionTitle2: { fontSize: 16, fontWeight: "700", color: "#1A1A1A" },
+  seeAll: { color: "#07C160", fontSize: 13, fontWeight: "600" },
+  featuredGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  featuredCard: {
+    width: "47%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  featuredBanner: {
+    height: 90,
+    padding: 10,
+    justifyContent: "flex-end",
+  },
+  featuredCategoryTag: {
+    backgroundColor: "rgba(255,255,255,0.3)",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  featuredCategoryText: { color: "#FFFFFF", fontSize: 11, fontWeight: "600" },
+  featuredInfo: { padding: 10 },
+  featuredName: { fontSize: 13, fontWeight: "700", color: "#1A1A1A", marginBottom: 3 },
+  featuredDesc: { fontSize: 11, color: "#9E9E9E", lineHeight: 15, marginBottom: 8 },
+  openBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#E8F8F0",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignSelf: "flex-start",
+  },
+  openBtnText: { color: "#07C160", fontSize: 12, fontWeight: "600" },
+  bottomPad: { height: 24 },
+});

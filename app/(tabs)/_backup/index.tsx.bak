@@ -1,0 +1,527 @@
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  ScanQrCode,
+  Bell,
+  Search,
+  CreditCard,
+  ArrowRightLeft,
+  PlusCircle,
+  Receipt,
+  Plane,
+  ShoppingBag,
+  HeartPulse,
+  Grid2x2,
+  Utensils,
+  Car,
+  Building2,
+  Star,
+  ArrowDownLeft,
+  Zap,
+} from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  bannerSlides,
+  quickActions,
+  myServices,
+  nearbyBusinesses,
+  recentActivity,
+} from "@/lib/mockData";
+import { flattenStyle } from "@/utils/flatten-style";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const BANNER_WIDTH = SCREEN_WIDTH - 32;
+
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  "credit-card": CreditCard,
+  "arrow-right-left": ArrowRightLeft,
+  "plus-circle": PlusCircle,
+  receipt: Receipt,
+  plane: Plane,
+  "shopping-bag": ShoppingBag,
+  "heart-pulse": HeartPulse,
+  "grid-2x2": Grid2x2,
+  utensils: Utensils,
+  car: Car,
+  "building-2": Building2,
+  "arrow-down-left": ArrowDownLeft,
+  zap: Zap,
+};
+
+function getIcon(iconName: string, size: number, color: string) {
+  const IconComp = ICON_MAP[iconName] || Grid2x2;
+  return <IconComp size={size} color={color} strokeWidth={1.8} />;
+}
+
+export default function HomeScreen() {
+  const [activeBanner, setActiveBanner] = useState(0);
+  const bannerRef = useRef<ScrollView>(null);
+  const autoScrollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    autoScrollRef.current = setInterval(() => {
+      setActiveBanner((prev) => {
+        const next = (prev + 1) % bannerSlides.length;
+        bannerRef.current?.scrollTo({ x: next * (BANNER_WIDTH + 12), animated: true });
+        return next;
+      });
+    }, 3000);
+    return () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    };
+  }, []);
+
+  const handleBannerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / (BANNER_WIDTH + 12));
+    setActiveBanner(index);
+  };
+
+  return (
+    <View style={styles.root}>
+      {/* Header */}
+      <LinearGradient
+        colors={["#07C160", "#05A350"]}
+        style={styles.header}
+      >
+        <SafeAreaView edges={["top"]} style={styles.headerInner}>
+          <Text style={styles.logoText}>Tolpar</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}>
+              <ScanQrCode size={22} color="#FFFFFF" strokeWidth={1.8} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerBtn} activeOpacity={0.7}>
+              <Bell size={22} color="#FFFFFF" strokeWidth={1.8} />
+              <View style={styles.notifDot} />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Search size={18} color="#9E9E9E" strokeWidth={1.8} />
+            <Text style={styles.searchPlaceholder}>Search services, businesses...</Text>
+          </View>
+        </View>
+
+        {/* Balance Card */}
+        <LinearGradient
+          colors={["#07C160", "#05A350"]}
+          style={styles.balanceCard}
+        >
+          <View style={styles.balanceRow}>
+            <View>
+              <Text style={styles.balanceLabel}>Total Balance</Text>
+              <Text style={styles.balanceAmount}>৳ 12,500.00</Text>
+            </View>
+            <TouchableOpacity style={styles.topUpBtn} activeOpacity={0.8}>
+              <Text style={styles.topUpBtnText}>Top Up</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                style={styles.quickActionItem}
+                activeOpacity={0.7}
+              >
+                <View style={styles.quickActionIcon}>
+                  {getIcon(action.icon, 22, "#07C160")}
+                </View>
+                <Text style={styles.quickActionLabel}>{action.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Banner Carousel */}
+        <View style={styles.bannerSection}>
+          <ScrollView
+            ref={bannerRef}
+            horizontal
+            pagingEnabled={false}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={BANNER_WIDTH + 12}
+            contentContainerStyle={styles.bannerScrollContent}
+            onScroll={handleBannerScroll}
+            scrollEventThrottle={16}
+          >
+            {bannerSlides.map((slide) => (
+              <LinearGradient
+                key={slide.id}
+                colors={slide.gradientColors as [string, string]}
+                style={styles.bannerSlide}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Text style={styles.bannerTitle}>{slide.title}</Text>
+                <Text style={styles.bannerSubtitle}>{slide.subtitle}</Text>
+                <TouchableOpacity style={styles.bannerBtn} activeOpacity={0.8}>
+                  <Text style={styles.bannerBtnText}>Learn More</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            ))}
+          </ScrollView>
+          <View style={styles.bannerDots}>
+            {bannerSlides.map((_, i) => (
+              <View
+                key={i}
+                style={i === activeBanner ? styles.dotActive : styles.dot}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* My Services */}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>My Services</Text>
+          <View style={styles.servicesGrid}>
+            {myServices.map((service) => (
+              <TouchableOpacity
+                key={service.id}
+                style={styles.serviceItem}
+                activeOpacity={0.7}
+              >
+                <View style={flattenStyle([styles.serviceIcon, { backgroundColor: service.color + "18" }])}>
+                  {getIcon(service.icon, 24, service.color)}
+                </View>
+                <Text style={styles.serviceLabel}>{service.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Nearby Businesses */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Nearby</Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.nearbyScrollContent}
+        >
+          {nearbyBusinesses.map((biz) => (
+            <TouchableOpacity key={biz.id} style={styles.bizCard} activeOpacity={0.8}>
+              <View style={flattenStyle([styles.bizImage, { backgroundColor: biz.color + "25" }])}>
+                <View style={flattenStyle([styles.bizImageIcon, { backgroundColor: biz.color }])}>
+                  <Building2 size={20} color="#FFF" strokeWidth={1.8} />
+                </View>
+              </View>
+              <View style={styles.bizInfo}>
+                <Text style={styles.bizName} numberOfLines={1}>{biz.name}</Text>
+                <View style={styles.bizMeta}>
+                  <View style={flattenStyle([styles.bizTag, { backgroundColor: biz.color + "18" }])}>
+                    <Text style={flattenStyle([styles.bizTagText, { color: biz.color }])}>{biz.category}</Text>
+                  </View>
+                </View>
+                <View style={styles.bizRating}>
+                  <Star size={12} color="#F39C12" fill="#F39C12" />
+                  <Text style={styles.bizRatingText}>{biz.rating}</Text>
+                  <Text style={styles.bizDistance}> · {biz.distance}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Recent Activity */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.activityCard}>
+          {recentActivity.map((item, index) => (
+            <View key={item.id}>
+              <TouchableOpacity style={styles.activityItem} activeOpacity={0.7}>
+                <View style={flattenStyle([styles.activityIconWrap, { backgroundColor: item.color + "18" }])}>
+                  {getIcon(item.icon, 20, item.color)}
+                </View>
+                <View style={styles.activityInfo}>
+                  <Text style={styles.activityTitle}>{item.title}</Text>
+                  <Text style={styles.activitySub}>{item.subtitle}</Text>
+                </View>
+                <View style={styles.activityRight}>
+                  <Text
+                    style={flattenStyle([
+                      styles.activityAmount,
+                      { color: item.type === "credit" ? "#07C160" : "#1A1A1A" },
+                    ])}
+                  >
+                    {item.amount}
+                  </Text>
+                  <Text style={styles.activityDate}>{item.date}</Text>
+                </View>
+              </TouchableOpacity>
+              {index < recentActivity.length - 1 && <View style={styles.divider} />}
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F5F5F5" },
+  header: { paddingBottom: 12 },
+  headerInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    letterSpacing: 0.5,
+  },
+  headerActions: { flexDirection: "row", gap: 8 },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notifDot: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FF3B30",
+    borderWidth: 1.5,
+    borderColor: "#07C160",
+  },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingTop: 0 },
+  searchContainer: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchPlaceholder: { color: "#9E9E9E", fontSize: 14, flex: 1 },
+  balanceCard: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 8,
+  },
+  balanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  balanceLabel: { color: "rgba(255,255,255,0.8)", fontSize: 13 },
+  balanceAmount: { color: "#FFFFFF", fontSize: 28, fontWeight: "700", marginTop: 4 },
+  topUpBtn: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  topUpBtnText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
+  section: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quickActionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  quickActionItem: {
+    width: "25%",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  quickActionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: "#E8F8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  quickActionLabel: {
+    fontSize: 12,
+    color: "#333333",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  bannerSection: { marginTop: 12, marginHorizontal: 16 },
+  bannerScrollContent: { gap: 12 },
+  bannerSlide: {
+    width: BANNER_WIDTH,
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 110,
+    justifyContent: "center",
+  },
+  bannerTitle: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  bannerSubtitle: { color: "rgba(255,255,255,0.85)", fontSize: 13, marginBottom: 12 },
+  bannerBtn: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    alignSelf: "flex-start",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  bannerBtnText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
+  bannerDots: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 10 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#CCCCCC" },
+  dotActive: { width: 18, height: 6, borderRadius: 3, backgroundColor: "#07C160" },
+  sectionCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#1A1A1A", marginBottom: 12 },
+  servicesGrid: { flexDirection: "row", justifyContent: "space-between" },
+  serviceItem: { alignItems: "center", flex: 1 },
+  serviceIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  serviceLabel: { fontSize: 11, color: "#333333", fontWeight: "500", textAlign: "center" },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  seeAll: { color: "#07C160", fontSize: 13, fontWeight: "600" },
+  nearbyScrollContent: { paddingHorizontal: 16, gap: 12 },
+  bizCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    width: 150,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  bizImage: {
+    height: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bizImageIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bizInfo: { padding: 10 },
+  bizName: { fontSize: 13, fontWeight: "600", color: "#1A1A1A", marginBottom: 4 },
+  bizMeta: { flexDirection: "row", marginBottom: 4 },
+  bizTag: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  bizTagText: { fontSize: 11, fontWeight: "500" },
+  bizRating: { flexDirection: "row", alignItems: "center", gap: 2 },
+  bizRatingText: { fontSize: 12, color: "#333", fontWeight: "600" },
+  bizDistance: { fontSize: 11, color: "#9E9E9E" },
+  activityCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  activityItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    gap: 12,
+  },
+  activityIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activityInfo: { flex: 1 },
+  activityTitle: { fontSize: 14, fontWeight: "600", color: "#1A1A1A" },
+  activitySub: { fontSize: 12, color: "#9E9E9E", marginTop: 2 },
+  activityRight: { alignItems: "flex-end" },
+  activityAmount: { fontSize: 14, fontWeight: "700" },
+  activityDate: { fontSize: 11, color: "#9E9E9E", marginTop: 2 },
+  divider: { height: 0.5, backgroundColor: "#F0F0F0", marginLeft: 72 },
+  bottomPad: { height: 24 },
+});

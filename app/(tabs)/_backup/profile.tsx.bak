@@ -1,0 +1,400 @@
+import React from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Switch,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Shield,
+  Bell,
+  Lock,
+  Sun,
+  Globe,
+  LifeBuoy,
+  Info,
+  ChevronRight,
+  Wallet,
+  Package,
+  CreditCard,
+  Heart,
+  LogOut,
+  Edit3,
+} from "lucide-react-native";
+import { mockUser, profileSettings, profileServices } from "@/lib/mockData";
+import { useAppStore } from "@/lib/store";
+import { flattenStyle } from "@/utils/flatten-style";
+
+const SETTINGS_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  shield: Shield,
+  bell: Bell,
+  lock: Lock,
+  sun: Sun,
+  globe: Globe,
+  "life-buoy": LifeBuoy,
+  info: Info,
+};
+
+const SERVICE_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  wallet: Wallet,
+  package: Package,
+  "credit-card": CreditCard,
+  heart: Heart,
+};
+
+export default function ProfileScreen() {
+  const { darkMode, toggleDarkMode } = useAppStore();
+
+  return (
+    <View style={styles.root}>
+      <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
+        <View style={styles.headerBar}>
+          <Text style={styles.headerTitle}>Me</Text>
+          <TouchableOpacity style={styles.editIconBtn} activeOpacity={0.7}>
+            <Edit3 size={20} color="#07C160" strokeWidth={1.8} />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <LinearGradient
+            colors={["#07C160", "#05A350"]}
+            style={styles.avatarCircle}
+          >
+            <Text style={styles.avatarText}>{mockUser.initials}</Text>
+          </LinearGradient>
+          <Text style={styles.userName}>{mockUser.name}</Text>
+          <Text style={styles.userHandle}>{mockUser.username}</Text>
+          <TouchableOpacity style={styles.editProfileBtn} activeOpacity={0.8}>
+            <Edit3 size={14} color="#07C160" strokeWidth={2} />
+            <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Stats Row */}
+        <View style={styles.statsCard}>
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7}>
+            <Text style={styles.statNumber}>
+              {(mockUser.followers / 1000).toFixed(1)}K
+            </Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7}>
+            <Text style={styles.statNumber}>{mockUser.following}</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
+          <TouchableOpacity style={styles.statItem} activeOpacity={0.7}>
+            <Text style={styles.statNumber}>{mockUser.posts}</Text>
+            <Text style={styles.statLabel}>Posts</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Wallet Balance */}
+        <LinearGradient
+          colors={["#07C160", "#05A350"]}
+          style={styles.walletCard}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <View>
+            <Text style={styles.walletLabel}>Tolpar Wallet</Text>
+            <Text style={styles.walletBalance}>৳ {mockUser.balance}</Text>
+          </View>
+          <TouchableOpacity style={styles.walletBtn} activeOpacity={0.8}>
+            <Text style={styles.walletBtnText}>Add Money</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+
+        {/* Profile Services */}
+        <View style={styles.sectionCard}>
+          <View style={styles.profileServicesRow}>
+            {profileServices.map((service) => {
+              const IconComp = SERVICE_ICONS[service.icon] || Wallet;
+              return (
+                <TouchableOpacity
+                  key={service.id}
+                  style={styles.profileServiceItem}
+                  activeOpacity={0.7}
+                >
+                  <View style={flattenStyle([styles.profileServiceIcon, { backgroundColor: service.color + "18" }])}>
+                    <IconComp size={22} color={service.color} strokeWidth={1.8} />
+                  </View>
+                  <Text style={styles.profileServiceLabel}>{service.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Settings Groups */}
+        {/* Account Group */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.settingsSectionLabel}>Account</Text>
+          <View style={styles.settingsCard}>
+            {profileSettings
+              .filter((s) => s.group === "account")
+              .map((setting, index, arr) => {
+                const IconComp = SETTINGS_ICONS[setting.icon] || Info;
+                return (
+                  <View key={setting.id}>
+                    <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+                      <View style={flattenStyle([styles.settingLeft])}>
+                        <View style={flattenStyle([styles.settingIconWrap])}>
+                          <IconComp size={18} color="#555" strokeWidth={1.8} />
+                        </View>
+                        <Text style={styles.settingLabel}>{setting.label}</Text>
+                      </View>
+                      <ChevronRight size={18} color="#CCCCCC" strokeWidth={2} />
+                    </TouchableOpacity>
+                    {index < arr.length - 1 && (
+                      <View style={styles.settingDivider} />
+                    )}
+                  </View>
+                );
+              })}
+          </View>
+        </View>
+
+        {/* Preferences Group */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.settingsSectionLabel}>Preferences</Text>
+          <View style={styles.settingsCard}>
+            {profileSettings
+              .filter((s) => s.group === "preferences")
+              .map((setting, index, arr) => {
+                const IconComp = SETTINGS_ICONS[setting.icon] || Info;
+                return (
+                  <View key={setting.id}>
+                    <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+                      <View style={flattenStyle([styles.settingLeft])}>
+                        <View style={flattenStyle([styles.settingIconWrap])}>
+                          <IconComp size={18} color="#555" strokeWidth={1.8} />
+                        </View>
+                        <Text style={styles.settingLabel}>{setting.label}</Text>
+                      </View>
+                      {setting.hasToggle ? (
+                        <Switch
+                          value={darkMode}
+                          onValueChange={toggleDarkMode}
+                          trackColor={{ false: "#E0E0E0", true: "#07C160" }}
+                          thumbColor="#FFFFFF"
+                        />
+                      ) : (
+                        <ChevronRight size={18} color="#CCCCCC" strokeWidth={2} />
+                      )}
+                    </TouchableOpacity>
+                    {index < arr.length - 1 && (
+                      <View style={styles.settingDivider} />
+                    )}
+                  </View>
+                );
+              })}
+          </View>
+        </View>
+
+        {/* Support Group */}
+        <View style={styles.settingsSection}>
+          <Text style={styles.settingsSectionLabel}>Support</Text>
+          <View style={styles.settingsCard}>
+            {profileSettings
+              .filter((s) => s.group === "support")
+              .map((setting, index, arr) => {
+                const IconComp = SETTINGS_ICONS[setting.icon] || Info;
+                return (
+                  <View key={setting.id}>
+                    <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+                      <View style={flattenStyle([styles.settingLeft])}>
+                        <View style={flattenStyle([styles.settingIconWrap])}>
+                          <IconComp size={18} color="#555" strokeWidth={1.8} />
+                        </View>
+                        <Text style={styles.settingLabel}>{setting.label}</Text>
+                      </View>
+                      <ChevronRight size={18} color="#CCCCCC" strokeWidth={2} />
+                    </TouchableOpacity>
+                    {index < arr.length - 1 && (
+                      <View style={styles.settingDivider} />
+                    )}
+                  </View>
+                );
+              })}
+          </View>
+        </View>
+
+        {/* Sign Out */}
+        <View style={styles.settingsSection}>
+          <View style={styles.settingsCard}>
+            <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+              <View style={flattenStyle([styles.settingLeft])}>
+                <View style={flattenStyle([styles.settingIconWrap, styles.settingIconRed])}>
+                  <LogOut size={18} color="#F44336" strokeWidth={1.8} />
+                </View>
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* App Version */}
+        <Text style={styles.versionText}>Tolpar v1.0.0</Text>
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F5F5F5" },
+  headerSafeArea: {
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+  },
+  headerBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: "#1A1A1A" },
+  editIconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#E8F8F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingTop: 0 },
+  profileCard: {
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    paddingVertical: 28,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#F0F0F0",
+  },
+  avatarCircle: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  avatarText: { color: "#FFFFFF", fontSize: 32, fontWeight: "700" },
+  userName: { fontSize: 20, fontWeight: "700", color: "#1A1A1A", marginBottom: 4 },
+  userHandle: { fontSize: 14, color: "#9E9E9E", marginBottom: 16 },
+  editProfileBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: "#07C160",
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  editProfileBtnText: { color: "#07C160", fontSize: 14, fontWeight: "600" },
+  statsCard: {
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    marginTop: 8,
+  },
+  statItem: { flex: 1, alignItems: "center" },
+  statNumber: { fontSize: 20, fontWeight: "700", color: "#1A1A1A" },
+  statLabel: { fontSize: 12, color: "#9E9E9E", marginTop: 3 },
+  statDivider: { width: 0.5, height: 32, backgroundColor: "#E0E0E0" },
+  walletCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  walletLabel: { color: "rgba(255,255,255,0.8)", fontSize: 12, marginBottom: 4 },
+  walletBalance: { color: "#FFFFFF", fontSize: 24, fontWeight: "700" },
+  walletBtn: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+  },
+  walletBtnText: { color: "#FFFFFF", fontSize: 13, fontWeight: "600" },
+  sectionCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  profileServicesRow: { flexDirection: "row", justifyContent: "space-between" },
+  profileServiceItem: { alignItems: "center", flex: 1 },
+  profileServiceIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  profileServiceLabel: { fontSize: 11, color: "#333", fontWeight: "500", textAlign: "center" },
+  settingsSection: { marginHorizontal: 16, marginTop: 16 },
+  settingsSectionLabel: { fontSize: 12, color: "#9E9E9E", fontWeight: "600", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 },
+  settingsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  settingItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 14,
+  },
+  settingLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  settingIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#F5F5F5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingIconRed: { backgroundColor: "#FFEBEE" },
+  settingLabel: { fontSize: 15, color: "#1A1A1A", fontWeight: "500" },
+  settingDivider: { height: 0.5, backgroundColor: "#F0F0F0", marginLeft: 62 },
+  signOutText: { fontSize: 15, color: "#F44336", fontWeight: "500" },
+  versionText: { textAlign: "center", color: "#CCCCCC", fontSize: 12, marginTop: 24 },
+  bottomPad: { height: 24 },
+});

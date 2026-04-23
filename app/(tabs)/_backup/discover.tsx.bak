@@ -1,0 +1,339 @@
+import React from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Search,
+  MapPin,
+  Star,
+  Clock,
+  TrendingUp,
+  Map,
+  ExternalLink,
+  Building2,
+  Trees,
+  ShoppingBag,
+  HeartPulse,
+} from "lucide-react-native";
+import { trendingTopics, nearbyPlaces, forYouFeed } from "@/lib/mockData";
+import { flattenStyle } from "@/utils/flatten-style";
+
+const NEARBY_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>> = {
+  "Shopping Mall": ShoppingBag,
+  Restaurant: Building2,
+  Park: Trees,
+  Hospital: HeartPulse,
+};
+
+export default function DiscoverScreen() {
+  return (
+    <View style={styles.root}>
+      <SafeAreaView edges={["top"]} style={styles.header}>
+        <Text style={styles.headerTitle}>Discover</Text>
+        <View style={styles.searchBar}>
+          <Search size={16} color="#9E9E9E" strokeWidth={1.8} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search places, topics..."
+            placeholderTextColor="#9E9E9E"
+          />
+        </View>
+      </SafeAreaView>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Trending Section */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <TrendingUp size={16} color="#07C160" strokeWidth={2} />
+            <Text style={styles.sectionTitle}>Trending</Text>
+          </View>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.trendingScrollContent}
+        >
+          {trendingTopics.map((topic) => (
+            <TouchableOpacity key={topic.id} activeOpacity={0.8}>
+              <LinearGradient
+                colors={topic.gradient as [string, string]}
+                style={styles.trendingCard}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <TrendingUp size={20} color="rgba(255,255,255,0.7)" strokeWidth={1.8} />
+                <Text style={styles.trendingTitle} numberOfLines={2}>
+                  {topic.title}
+                </Text>
+                <View style={styles.trendingFooter}>
+                  <Text style={styles.trendingTag}>Trending</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Nearby Section */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <MapPin size={16} color="#07C160" strokeWidth={2} />
+            <Text style={styles.sectionTitle}>Nearby</Text>
+          </View>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.seeAll}>See All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Map Placeholder */}
+        <TouchableOpacity style={styles.mapCard} activeOpacity={0.8}>
+          <LinearGradient
+            colors={["#07C160", "#05A350"]}
+            style={styles.mapGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Map size={36} color="rgba(255,255,255,0.9)" strokeWidth={1.5} />
+            <Text style={styles.mapTitle}>Map View</Text>
+            <Text style={styles.mapSubtitle}>Explore businesses near you</Text>
+            <View style={styles.mapBtn}>
+              <ExternalLink size={13} color="#07C160" strokeWidth={2} />
+              <Text style={styles.mapBtnText}>Open Map</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Nearby Places List */}
+        <View style={styles.nearbyCard}>
+          {nearbyPlaces.map((place, index) => {
+            const IconComp = NEARBY_ICONS[place.category] || Building2;
+            return (
+              <View key={place.id}>
+                <TouchableOpacity style={styles.nearbyItem} activeOpacity={0.7}>
+                  <View style={styles.nearbyIconWrap}>
+                    <IconComp size={20} color="#07C160" strokeWidth={1.8} />
+                  </View>
+                  <View style={styles.nearbyInfo}>
+                    <Text style={styles.nearbyName}>{place.name}</Text>
+                    <Text style={styles.nearbyCategory}>{place.category}</Text>
+                  </View>
+                  <View style={styles.nearbyMeta}>
+                    <View style={styles.ratingRow}>
+                      <Star size={11} color="#F39C12" fill="#F39C12" />
+                      <Text style={styles.ratingText}>{place.rating}</Text>
+                    </View>
+                    <View style={styles.distanceRow}>
+                      <MapPin size={11} color="#9E9E9E" strokeWidth={1.8} />
+                      <Text style={styles.distanceText}>{place.distance}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                {index < nearbyPlaces.length - 1 && (
+                  <View style={styles.divider} />
+                )}
+              </View>
+            );
+          })}
+        </View>
+
+        {/* For You Feed */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleRow}>
+            <Star size={16} color="#07C160" strokeWidth={2} />
+            <Text style={styles.sectionTitle}>For You</Text>
+          </View>
+        </View>
+
+        {forYouFeed.map((item) => (
+          <TouchableOpacity key={item.id} style={styles.feedCard} activeOpacity={0.8}>
+            <View style={flattenStyle([styles.feedImagePlaceholder, { backgroundColor: item.color + "22" }])}>
+              <View style={flattenStyle([styles.feedImageIcon, { backgroundColor: item.color }])}>
+                <TrendingUp size={16} color="#FFF" strokeWidth={1.8} />
+              </View>
+            </View>
+            <View style={styles.feedContent}>
+              <Text style={styles.feedTitle} numberOfLines={2}>
+                {item.title}
+              </Text>
+              <View style={styles.feedMeta}>
+                <Text style={flattenStyle([styles.feedSource, { color: item.color }])}>{item.source}</Text>
+                <View style={styles.feedTimeDot} />
+                <Clock size={11} color="#9E9E9E" strokeWidth={1.8} />
+                <Text style={styles.feedTime}>{item.time}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+
+        <View style={styles.bottomPad} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#F5F5F5" },
+  header: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#E0E0E0",
+  },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: "#1A1A1A", marginTop: 8, marginBottom: 10 },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: "#1A1A1A", padding: 0 },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingTop: 8 },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#1A1A1A" },
+  seeAll: { color: "#07C160", fontSize: 13, fontWeight: "600" },
+  trendingScrollContent: { paddingHorizontal: 16, gap: 12 },
+  trendingCard: {
+    width: 160,
+    borderRadius: 14,
+    padding: 16,
+    minHeight: 130,
+    justifyContent: "space-between",
+  },
+  trendingTitle: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  trendingFooter: {},
+  trendingTag: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: 11,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  mapCard: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 8,
+  },
+  mapGradient: {
+    padding: 24,
+    alignItems: "center",
+    minHeight: 140,
+    justifyContent: "center",
+    gap: 6,
+  },
+  mapTitle: { color: "#FFFFFF", fontSize: 20, fontWeight: "700" },
+  mapSubtitle: { color: "rgba(255,255,255,0.8)", fontSize: 13 },
+  mapBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    marginTop: 6,
+  },
+  mapBtnText: { color: "#07C160", fontSize: 13, fontWeight: "600" },
+  nearbyCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+    marginBottom: 4,
+  },
+  nearbyItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    gap: 12,
+  },
+  nearbyIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#E8F8F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nearbyInfo: { flex: 1 },
+  nearbyName: { fontSize: 14, fontWeight: "600", color: "#1A1A1A" },
+  nearbyCategory: { fontSize: 12, color: "#9E9E9E", marginTop: 2 },
+  nearbyMeta: { alignItems: "flex-end", gap: 4 },
+  ratingRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+  ratingText: { fontSize: 12, color: "#333", fontWeight: "600" },
+  distanceRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+  distanceText: { fontSize: 11, color: "#9E9E9E" },
+  divider: { height: 0.5, backgroundColor: "#F0F0F0", marginLeft: 72 },
+  feedCard: {
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 14,
+    flexDirection: "row",
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  feedImagePlaceholder: {
+    width: 90,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  feedImageIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  feedContent: { flex: 1, padding: 12 },
+  feedTitle: { fontSize: 14, fontWeight: "600", color: "#1A1A1A", lineHeight: 20 },
+  feedMeta: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 8, flexWrap: "wrap" },
+  feedSource: { fontSize: 12, fontWeight: "600" },
+  feedTimeDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: "#9E9E9E" },
+  feedTime: { fontSize: 11, color: "#9E9E9E" },
+  bottomPad: { height: 24 },
+});
