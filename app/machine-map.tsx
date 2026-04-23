@@ -58,13 +58,11 @@ export default function MachineMapScreen() {
   const mapRef = useRef<any>(null);
 
   const filteredMachines = machineLocations.filter((m) => m.type === machineType);
-  const [selectedMachine, setSelectedMachine] = useState<MachineLocation | null>(
-    filteredMachines.length > 0 ? filteredMachines[0] : null
-  );
+  const [selectedMachine, setSelectedMachine] = useState<MachineLocation | null>(null);
   
   // Panel state
-  const [panelVisible, setPanelVisible] = useState(true);
-  const panelTranslateY = useSharedValue(0);
+  const [panelVisible, setPanelVisible] = useState(false);
+  const panelTranslateY = useSharedValue(500);
 
   // Performance: Let bitmaps render for 3s, then stop tracking to boost touch speed
   const [markersReady, setMarkersReady] = useState(true);

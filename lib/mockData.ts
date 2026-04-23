@@ -71,6 +71,12 @@ export const snackInventory = [
   { name: "Dan Cake Swiss Roll", price: "৳ 10", image: require("@/assets/images/products/swiss_roll.png") },
   { name: "Mr. Noodles Instant", price: "৳ 18", image: require("@/assets/images/products/noodles.png") },
   { name: "Bisco Club Biscuit", price: "৳ 30", image: require("@/assets/images/products/bisco.png") },
+  { name: "Coca Cola (250ml)", price: "৳ 25", image: require("@/assets/images/products/coke.png") },
+  { name: "Potato Crackers Chips", price: "৳ 15", image: require("@/assets/images/products/chips.png") },
+  { name: "Oreo Original", price: "৳ 40", image: require("@/assets/images/products/oreo.png") },
+  { name: "Red Bull Energy Drink", price: "৳ 150", image: require("@/assets/images/products/redbull.png") },
+  { name: "Snickers Chocolate", price: "৳ 60", image: require("@/assets/images/products/snickers.png") },
+  { name: "Kinley Mineral Water", price: "৳ 20", image: require("@/assets/images/products/water.png") },
 ];
 
 export const powerbankInventory = [

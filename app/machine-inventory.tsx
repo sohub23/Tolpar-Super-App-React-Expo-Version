@@ -1,8 +1,8 @@
 // Machine Inventory Screen — Full-screen inventory with Slide-to-Unlock
-// Navigated to from machine-map.tsx when user taps "Unlock the Door"
+// Apple-style glassmorphism design — minimal, premium, smooth
 // Structured for future API integration: replace getInventoryForMachine() with real API call.
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,17 +11,15 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Lock, Unlock, MapPin, ChevronRight } from "lucide-react-native";
+import { ArrowLeft, Lock, Unlock, MapPin, ChevronRight, Package } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
   runOnJS,
   interpolate,
   interpolateColor,
@@ -33,18 +31,9 @@ import { getInventoryForMachine } from "@/lib/mockData";
 import type { MachineType } from "@/lib/mockData";
 
 const { width: SW } = Dimensions.get("window");
-const SLIDER_WIDTH = SW - 64; // Padding 32 each side
+const SLIDER_WIDTH = SW - 64;
 const THUMB_SIZE = 60;
-const SLIDE_RANGE = SLIDER_WIDTH - THUMB_SIZE - 8; // 8 for inner padding
-
-const PASTEL_COLORS = [
-  "#FCE6BA",
-  "#E1F8D1",
-  "#D9E2F1",
-  "#FCE9E1",
-  "#FFF1D0",
-  "#E0F5F7",
-];
+const SLIDE_RANGE = SLIDER_WIDTH - THUMB_SIZE - 8;
 
 // Machine display names
 function getMachineName(type: string): string {
@@ -80,12 +69,11 @@ export default function MachineInventoryScreen() {
   // Slide-to-unlock state
   const [unlocked, setUnlocked] = useState(false);
   const translateX = useSharedValue(0);
+  const startX = useSharedValue(0);
 
   const onUnlockSuccess = useCallback(() => {
     setUnlocked(true);
   }, []);
-
-  const startX = useSharedValue(0);
 
   const panGesture = Gesture.Pan()
     .onBegin(() => {
@@ -97,11 +85,9 @@ export default function MachineInventoryScreen() {
     })
     .onEnd(() => {
       if (translateX.value > SLIDE_RANGE * 0.85) {
-        // Unlock!
         translateX.value = withSpring(SLIDE_RANGE, { damping: 15, stiffness: 150 });
         runOnJS(onUnlockSuccess)();
       } else {
-        // Snap back
         translateX.value = withSpring(0, { damping: 15, stiffness: 200 });
       }
     });
@@ -123,68 +109,31 @@ export default function MachineInventoryScreen() {
     return { backgroundColor: bgColor };
   });
 
-  // Split products into masonry columns
-  const leftColumn = products.filter((_: any, i: number) => i % 2 === 0);
-  const rightColumn = products.filter((_: any, i: number) => i % 2 !== 0);
-
-  const renderCard = (item: any, index: number, isRight: boolean) => {
-    const absoluteIndex = isRight ? index * 2 + 1 : index * 2;
-    const bgColor = PASTEL_COLORS[absoluteIndex % PASTEL_COLORS.length];
-
-    const nameParts = item.name.split(" ");
-    const firstWord = nameParts[0];
-    const restWords = nameParts.slice(1).join(" ");
-
-    return (
-      <View key={item.name} style={[s.card, { backgroundColor: bgColor }]}>
-        <View style={s.cardHeader}>
-          <Text style={s.cardTitle}>
-            {firstWord}
-            {restWords ? `\n${restWords}` : ""}
-          </Text>
-          <View style={s.badge}>
-            <Text style={s.badgeText}>
-              {type === "powerbank" ? "Charge" : type === "locker" ? "Storage" : "Snack"}
-            </Text>
-          </View>
-        </View>
-        <Image
-          source={item.image}
-          style={s.cardImage}
-          resizeMode="contain"
-        />
-        <View style={s.bottomPill}>
-          <Text style={s.price}>{item.price}</Text>
-        </View>
-      </View>
-    );
-  };
-
   return (
     <View style={s.root}>
       {/* Header */}
-      <LinearGradient colors={["#FFFFFF", "#F8FAFB"]} style={s.headerGradient}>
+      <View style={s.headerWrap}>
         <SafeAreaView edges={["top"]} style={s.headerBar}>
           <TouchableOpacity
             style={s.backBtn}
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <ArrowLeft size={22} color="#1C1C1E" strokeWidth={2} />
+            <ArrowLeft size={20} color="#1C1C1E" strokeWidth={2} />
           </TouchableOpacity>
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>{machineName}</Text>
             <Text style={s.headerSub}>{machineBranch || "Machine"}</Text>
           </View>
-          <View style={{ width: 44 }} />
+          <View style={{ width: 40 }} />
         </SafeAreaView>
-      </LinearGradient>
+      </View>
 
       {/* Machine Info Card */}
       <View style={s.infoCard}>
         <View style={s.infoLeft}>
           <View style={s.infoRow}>
-            <MapPin size={14} color="#8E8E93" strokeWidth={2} />
+            <MapPin size={13} color="#8E8E93" strokeWidth={2} />
             <Text style={s.infoAddress} numberOfLines={1}>
               {machineAddress || "Machine Location"}
             </Text>
@@ -217,33 +166,48 @@ export default function MachineInventoryScreen() {
         </View>
       </View>
 
-      {/* Products Section Header */}
+      {/* Section Header */}
       <View style={s.sectionHeader}>
-        <View>
-          <Text style={s.sectionHighlight}>Available</Text>
-          <Text style={s.sectionTitle}>Products</Text>
-        </View>
-        <View style={s.itemsCount}>
-          <Text style={s.itemsCountText}>{products.length} items</Text>
+        <Text style={s.sectionTitle}>Available Items</Text>
+        <View style={s.itemsBadge}>
+          <Package size={12} color="#8E8E93" strokeWidth={2} />
+          <Text style={s.itemsBadgeText}>{products.length}</Text>
         </View>
       </View>
 
-      {/* Product Grid (Masonry) */}
+      {/* Product List — Apple-style glass cards */}
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
-        bounces={true}
       >
-        <View style={s.masonryContainer}>
-          <View style={s.column}>
-            {leftColumn.map((item: any, i: number) => renderCard(item, i, false))}
-          </View>
-          <View style={[s.column, s.rightColumnStagger]}>
-            {rightColumn.map((item: any, i: number) => renderCard(item, i, true))}
-          </View>
+        <View style={s.gridContainer}>
+          {products.map((item: any, index: number) => (
+            <View key={item.name + index} style={s.glassCard}>
+              {/* Product Image */}
+              <View style={s.imgWrap}>
+                <Image
+                  source={item.image}
+                  style={s.productImg}
+                  resizeMode="contain"
+                />
+              </View>
+              {/* Product Info */}
+              <View style={s.productInfo}>
+                <Text style={s.productName} numberOfLines={2}>{item.name}</Text>
+                <Text style={s.productCategory}>
+                  {type === "powerbank" ? "Charging" : type === "locker" ? "Storage" : "Snack & Drink"}
+                </Text>
+              </View>
+              {/* Price */}
+              <View style={s.priceWrap}>
+                <Text style={s.priceText}>{item.price}</Text>
+              </View>
+            </View>
+          ))}
         </View>
-        {/* Extra space for bottom buttons */}
+
+        {/* Bottom spacing for action buttons */}
         <View style={{ height: 180 }} />
       </ScrollView>
 
@@ -259,13 +223,13 @@ export default function MachineInventoryScreen() {
                 </Animated.Text>
                 {/* Chevron hints */}
                 <Animated.View style={[s.chevronHints, sliderTextAnimStyle]}>
-                  <ChevronRight size={16} color="rgba(255,255,255,0.3)" strokeWidth={2.5} />
-                  <ChevronRight size={16} color="rgba(255,255,255,0.5)" strokeWidth={2.5} />
-                  <ChevronRight size={16} color="rgba(255,255,255,0.7)" strokeWidth={2.5} />
+                  <ChevronRight size={14} color="rgba(255,255,255,0.3)" strokeWidth={2.5} />
+                  <ChevronRight size={14} color="rgba(255,255,255,0.5)" strokeWidth={2.5} />
+                  <ChevronRight size={14} color="rgba(255,255,255,0.7)" strokeWidth={2.5} />
                 </Animated.View>
                 <GestureDetector gesture={panGesture}>
                   <Animated.View style={[s.sliderThumb, thumbAnimStyle]}>
-                    <Lock size={22} color="#1C1C1E" strokeWidth={2} />
+                    <Lock size={20} color="#1C1C1E" strokeWidth={2} />
                   </Animated.View>
                 </GestureDetector>
               </Animated.View>
@@ -277,7 +241,7 @@ export default function MachineInventoryScreen() {
                 colors={["#07C160", "#00A84F"]}
                 style={s.unlockedBanner}
               >
-                <Unlock size={22} color="#FFFFFF" strokeWidth={2} />
+                <Unlock size={20} color="#FFFFFF" strokeWidth={2} />
                 <Text style={s.unlockedText}>Door Unlocked!</Text>
               </LinearGradient>
             </View>
@@ -289,7 +253,7 @@ export default function MachineInventoryScreen() {
             activeOpacity={0.8}
             onPress={() => router.back()}
           >
-            <MapPin size={16} color="#1C1C1E" strokeWidth={2} />
+            <MapPin size={15} color="#1C1C1E" strokeWidth={2} />
             <Text style={s.backToMapsText}>Back to Maps</Text>
           </TouchableOpacity>
         </SafeAreaView>
@@ -299,30 +263,34 @@ export default function MachineInventoryScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FAFAFA" },
+  root: { flex: 1, backgroundColor: "#F2F2F7" },
 
-  // Header
-  headerGradient: { borderBottomWidth: 0.5, borderBottomColor: "#E5E5EA" },
+  // ─── Header ────────────────────────────────────────
+  headerWrap: {
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "rgba(0,0,0,0.08)",
+  },
   headerBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingBottom: 14,
-    paddingTop: 6,
+    paddingBottom: 12,
+    paddingTop: 4,
   },
   backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "#F2F2F7",
     alignItems: "center",
     justifyContent: "center",
   },
   headerCenter: { alignItems: "center" },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#1C1C1E",
     letterSpacing: -0.3,
   },
@@ -330,130 +298,150 @@ const s = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
     color: "#8E8E93",
-    marginTop: 2,
+    marginTop: 1,
   },
 
-  // Info Card
+  // ─── Info Card ──────────────────────────────────────
   infoCard: {
     marginHorizontal: 16,
     marginTop: 12,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 16,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowRadius: 6,
+    elevation: 1,
   },
   infoLeft: { flex: 1, marginRight: 12 },
-  infoRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  infoRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   infoAddress: { fontSize: 14, fontWeight: "600", color: "#1C1C1E", flex: 1 },
-  infoId: { fontSize: 12, color: "#8E8E93", fontWeight: "500", marginTop: 4 },
+  infoId: { fontSize: 11, color: "#8E8E93", fontWeight: "500", marginTop: 3 },
   statusChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     backgroundColor: "rgba(7,193,96,0.1)",
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
-  statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#07C160" },
+  statusDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: "#07C160" },
   statusLabel: { fontSize: 12, fontWeight: "700", color: "#07C160" },
 
-  // Section Header
+  // ─── Section Header ────────────────────────────────
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 12,
-  },
-  sectionHighlight: {
-    fontSize: 22,
-    fontWeight: "500",
-    color: "#1C1C1E",
-    letterSpacing: -0.5,
+    paddingBottom: 10,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
     color: "#1C1C1E",
-    letterSpacing: -0.5,
-    marginTop: 2,
+    letterSpacing: -0.4,
   },
-  itemsCount: {
-    backgroundColor: "#F2F2F7",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+  itemsBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  itemsCountText: { fontSize: 13, fontWeight: "600", color: "#1C1C1E" },
+  itemsBadgeText: { fontSize: 13, fontWeight: "700", color: "#1C1C1E" },
 
-  // Product Grid
+  // ─── Product List ──────────────────────────────────
   scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
-
-  masonryContainer: { flexDirection: "row", gap: 14 },
-  column: { flex: 1, gap: 14 },
-  rightColumnStagger: { marginTop: 36 },
-
-  // Card
-  card: {
-    height: 220,
-    borderRadius: 28,
-    padding: 18,
-    overflow: "hidden",
-    position: "relative",
-  },
-  cardHeader: { zIndex: 10 },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1C1C1E",
-    letterSpacing: -0.5,
-    lineHeight: 20,
-    marginBottom: 8,
-  },
-  badge: {
-    backgroundColor: "rgba(255,255,255,0.7)",
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  badgeText: { fontSize: 10, fontWeight: "600", color: "#8E8E93" },
-
-  cardImage: {
-    position: "absolute",
-    bottom: -30,
-    right: -30,
-    width: "125%",
-    height: "95%",
-    transform: [{ rotate: "-15deg" }],
-    zIndex: 1,
+  scrollContent: { paddingHorizontal: 16, paddingTop: 4 },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
 
-  bottomPill: {
-    position: "absolute",
-    bottom: 14,
-    left: 14,
+  // Apple-style Glass Card
+  glassCard: {
+    width: "48%",
+    flexDirection: "column",
+    alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.85)",
-    borderRadius: 24,
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    // Glass effect border
+    borderWidth: 0.5,
+    borderColor: "rgba(255,255,255,0.95)",
+    // Soft shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+
+  // Product Image Container
+  imgWrap: {
+    width: 100,
+    height: 100,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    zIndex: 10,
+    marginBottom: 8,
   },
-  price: { fontSize: 13, fontWeight: "800", color: "#1C1C1E" },
+  productImg: {
+    width: 95,
+    height: 95,
+  },
 
-  // Bottom Action Area
+  // Product Info
+  productInfo: {
+    alignItems: "center",
+    marginBottom: 10,
+    height: 40,
+    justifyContent: "center",
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1C1C1E",
+    letterSpacing: -0.2,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  productCategory: {
+    fontSize: 11,
+    fontWeight: "500",
+    color: "#8E8E93",
+    marginTop: 4,
+  },
+
+  // Price
+  priceWrap: {
+    backgroundColor: "rgba(7,193,96,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  priceText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#07C160",
+  },
+
+  // ─── Bottom Action Area ────────────────────────────
   bottomArea: {
     position: "absolute",
     bottom: 0,
@@ -464,7 +452,7 @@ const s = StyleSheet.create({
     borderTopRightRadius: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 12,
   },
@@ -508,7 +496,7 @@ const s = StyleSheet.create({
     justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.12,
     shadowRadius: 8,
     elevation: 6,
   },
@@ -532,7 +520,7 @@ const s = StyleSheet.create({
 
   // Back to Maps
   backToMapsBtn: {
-    height: 52,
+    height: 50,
     borderRadius: 16,
     backgroundColor: "#F2F2F7",
     flexDirection: "row",
