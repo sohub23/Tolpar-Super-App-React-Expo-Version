@@ -20,7 +20,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedGestureHandler,
   withSpring,
   withTiming,
   runOnJS,
@@ -28,7 +27,7 @@ import Animated, {
   interpolateColor,
   Extrapolation,
 } from "react-native-reanimated";
-import { PanGestureHandler } from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { getInventoryForMachine } from "@/lib/mockData";
 import type { MachineType } from "@/lib/mockData";
@@ -86,15 +85,17 @@ export default function MachineInventoryScreen() {
     setUnlocked(true);
   }, []);
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx: any) => {
-      ctx.startX = translateX.value;
-    },
-    onActive: (event, ctx: any) => {
-      const newX = ctx.startX + event.translationX;
+  const startX = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      startX.value = translateX.value;
+    })
+    .onUpdate((event) => {
+      const newX = startX.value + event.translationX;
       translateX.value = Math.max(0, Math.min(newX, SLIDE_RANGE));
-    },
-    onEnd: () => {
+    })
+    .onEnd(() => {
       if (translateX.value > SLIDE_RANGE * 0.85) {
         // Unlock!
         translateX.value = withSpring(SLIDE_RANGE, { damping: 15, stiffness: 150 });
@@ -103,8 +104,7 @@ export default function MachineInventoryScreen() {
         // Snap back
         translateX.value = withSpring(0, { damping: 15, stiffness: 200 });
       }
-    },
-  });
+    });
 
   const thumbAnimStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -263,11 +263,11 @@ export default function MachineInventoryScreen() {
                   <ChevronRight size={16} color="rgba(255,255,255,0.5)" strokeWidth={2.5} />
                   <ChevronRight size={16} color="rgba(255,255,255,0.7)" strokeWidth={2.5} />
                 </Animated.View>
-                <PanGestureHandler onGestureEvent={gestureHandler}>
+                <GestureDetector gesture={panGesture}>
                   <Animated.View style={[s.sliderThumb, thumbAnimStyle]}>
                     <Lock size={22} color="#1C1C1E" strokeWidth={2} />
                   </Animated.View>
-                </PanGestureHandler>
+                </GestureDetector>
               </Animated.View>
             </View>
           ) : (
