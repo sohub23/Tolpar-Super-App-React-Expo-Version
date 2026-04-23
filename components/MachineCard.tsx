@@ -1,25 +1,26 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Image } from "expo-image";
-import { flattenStyle } from "@/utils/flatten-style";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { Refrigerator, Grid2x2, ShoppingBag } from "lucide-react-native";
 
 interface MachineCardProps {
   id: string;
   label: string;
   color: string;
-  image: string; // the image name or uri
+  image: string; // Not used directly anymore, but kept for interface compatibility
   machineType: string;
   onPress: (type: string) => void;
 }
 
-const MACHINE_IMAGES: Record<string, any> = {
-  omama: require("../assets/images/omama.png"),
-  vending: require("../assets/images/vending.png"),
-  powerbank: require("../assets/images/powerbank.png"),
-  locker: require("../assets/images/locker.png"),
+const MACHINE_ICON_IMAGES: Record<string, any> = {
+  vending: require("../assets/images/icons/vending-icon.png"),
+  powerbank: require("../assets/images/icons/powerbank-icon.png"),
+  locker: require("../assets/images/icons/locker-icon.png"),
 };
 
 export function MachineCard({ id, label, color, image, machineType, onPress }: MachineCardProps) {
+  const isCustomIcon = !!MACHINE_ICON_IMAGES[machineType];
+  const themeGreen = "#07C160"; // To match the Scan QR, Pay, etc.
+
   return (
     <TouchableOpacity
       style={s.card}
@@ -27,12 +28,15 @@ export function MachineCard({ id, label, color, image, machineType, onPress }: M
       onPress={() => onPress(machineType)}
     >
       <View style={s.iconWrap}>
-        <Image
-          source={MACHINE_IMAGES[image] || { uri: image }}
-          style={s.image}
-          contentFit="contain"
-          transition={200}
-        />
+        {isCustomIcon ? (
+          <Image 
+            source={MACHINE_ICON_IMAGES[machineType]} 
+            style={[s.iconImage, { tintColor: themeGreen }]} 
+            resizeMode="contain"
+          />
+        ) : (
+          <Refrigerator size={24} color={themeGreen} strokeWidth={1.8} />
+        )}
       </View>
       <Text style={s.label}>{label}</Text>
     </TouchableOpacity>
@@ -41,25 +45,28 @@ export function MachineCard({ id, label, color, image, machineType, onPress }: M
 
 const s = StyleSheet.create({
   card: {
-    width: "23%",
+    width: "25%", // Match QuickItem width
     alignItems: "center",
     paddingVertical: 10,
   },
   iconWrap: {
-    backgroundColor: "transparent",
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: "#F2F2F7",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
+    marginBottom: 7,
   },
-  image: {
-    width: 60,
-    height: 60,
+  iconImage: {
+    width: 26,
+    height: 26,
   },
   label: {
-    fontSize: 12,
-    color: "#1C1C1E",
-    fontWeight: "600",
+    fontSize: 11,
+    color: "#3C3C43",
+    fontWeight: "500",
     textAlign: "center",
-    letterSpacing: -0.1,
+    lineHeight: 14,
   },
 });

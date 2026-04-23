@@ -100,15 +100,20 @@ export default function MachineMapScreen() {
 
   const handleMarkerPress = useCallback((machine: MachineLocation) => {
     setSelectedMachine(machine);
-    setPanelVisible(true);
-    // Pan map to marker — gentle offset so marker stays visible above the panel
-    mapRef.current?.animateToRegion({
-      latitude: machine.lat - 0.003,
-      longitude: machine.lng,
-      latitudeDelta: 0.015,
-      longitudeDelta: 0.015,
-    }, 600);
-  }, []);
+    // Navigate directly to inventory screen
+    router.push({
+      pathname: "/machine-inventory",
+      params: {
+        machineId: machine.id,
+        machineBranch: machine.branch,
+        machineAddress: machine.address,
+        machineType: machine.type,
+        machineStatus: machine.status,
+        machinePhoto: machine.photo,
+        machineTitle: machine.title,
+      },
+    });
+  }, [router]);
 
   const handleSetRoute = useCallback(() => {
     if (!selectedMachine) return;
@@ -133,6 +138,8 @@ export default function MachineMapScreen() {
         machineAddress: selectedMachine.address,
         machineType: selectedMachine.type,
         machineStatus: selectedMachine.status,
+        machinePhoto: selectedMachine.photo,
+        machineTitle: selectedMachine.title,
       },
     });
   }, [selectedMachine, router]);
